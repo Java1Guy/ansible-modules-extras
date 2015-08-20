@@ -190,29 +190,102 @@ class Ec2FactInventory(object):
 
         return False
 
+    def get_remotefacts_config(self):
+        # set default configuration values
+        config = dict(
+            regions = "all",
+            regions_exclude = "us-gov-west-1,cn-north-1",
+            destination_variable = "public_dns_name",
+            vpc_destination_variable = "ip_address",
+            route53 = False,
+            all_instances = False,
+            all_rds_instances = False,
+            all_elasticache_replication_groups = False,
+            all_elasticache_clusters = False,
+            all_elasticache_nodes = False,
+            cache_path = "~/.ansible/tmp",
+            cache_max_age = 300,
+            nested_groups = False,
+            group_by_instance_id = True,
+            group_by_region = True,
+            group_by_availability_zone = True,
+            group_by_ami_id = True,
+            group_by_instance_type = True,
+            group_by_key_pair = True,
+            group_by_vpc_id = True,
+            group_by_security_group = True,
+            group_by_tag_keys = True,
+            group_by_tag_none = True,
+            group_by_route53_names = True,
+            group_by_rds_engine = True,
+            group_by_rds_parameter_group = True,
+            group_by_elasticache_engine = True,
+            group_by_elasticache_cluster = True,
+            group_by_elasticache_parameter_group = True,
+            group_by_elasticache_replication_group = True
+        )
+        # list all available configuration parameters
+        options = [
+            'eucalyptus',
+            'eucalyptus_host',
+            'regions',
+            'regions_exclude',
+            'destination_variable',
+            'vpc_destination_variable',
+            'route53',
+            'route53_excluded_zones',
+            'rds',
+            'all_instances',
+            'all_rds_instances',
+            'elasticache',
+            'all_elasticache_nodes',
+            'all_elasticache_clusters',
+            'all_elasticache_replication_groups',
+            'pattern_exclude',
+            'pattern_include',
+            'instance_filters',
+            'group_by_instance_id',
+            'group_by_region',
+            'group_by_availability_zone',
+            'group_by_ami_id',
+            'group_by_instance_type',
+            'group_by_key_pair',
+            'group_by_vpc_id',
+            'group_by_security_group',
+            'group_by_tag_keys',
+            'group_by_tag_none',
+            'group_by_route53_names',
+            'group_by_rds_engine',
+            'group_by_rds_parameter_group',
+            'group_by_elasticache_engine',
+            'group_by_elasticache_cluster',
+            'group_by_elasticache_parameter_group',
+            'group_by_elasticache_replication_group',
+            'nested_groups',
+            'cache_max_age',
+            'cache_path'
+        ]
+        for option in options:
+            if option in self.module.params:
+                config[option] = self.module.params.get(option)
+        return config
 
     def read_settings(self):
-        ''' Reads the settings from the ec2.ini file '''
-        if six.PY2:
-            config = configparser.SafeConfigParser()
-        else:
-            config = configparser.ConfigParser()
-        ec2_default_ini_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ec2.ini')
-        ec2_ini_path = os.environ.get('EC2_INI_PATH', ec2_default_ini_path)
-        config.read(ec2_ini_path)
+        ''' Reads the settings from the module parameters '''
+        config = self.get_remotefacts_config()
 
         # is eucalyptus?
         self.eucalyptus_host = None
         self.eucalyptus = False
-        if config.has_option('ec2', 'eucalyptus'):
-            self.eucalyptus = config.getboolean('ec2', 'eucalyptus')
-        if self.eucalyptus and config.has_option('ec2', 'eucalyptus_host'):
-            self.eucalyptus_host = config.get('ec2', 'eucalyptus_host')
+        if 'eucalyptus' in config:
+            self.eucalyptus = config.get('eucalyptus')
+        if self.eucalyptus and 'eucalyptus_host' in config:
+            self.eucalyptus_host = config.get('eucalyptus_host')
 
         # Regions
         self.regions = []
-        configRegions = config.get('ec2', 'regions')
-        configRegions_exclude = config.get('ec2', 'regions_exclude')
+        configRegions = config.get('regions')
+        configRegions_exclude = config.get('regions_exclude')
         if (configRegions == 'all'):
             if self.eucalyptus_host:
                 self.regions.append(boto.connect_euca(host=self.eucalyptus_host).region.name)
@@ -224,68 +297,68 @@ class Ec2FactInventory(object):
             self.regions = configRegions.split(",")
 
         # Destination addresses
-        self.destination_variable = config.get('ec2', 'destination_variable')
-        self.vpc_destination_variable = config.get('ec2', 'vpc_destination_variable')
+        self.destination_variable = config.get('destination_variable')
+        self.vpc_destination_variable = config.get('vpc_destination_variable')
 
         # Route53
-        self.route53_enabled = config.getboolean('ec2', 'route53')
+        self.route53_enabled = config.get('route53')
         self.route53_excluded_zones = []
-        if config.has_option('ec2', 'route53_excluded_zones'):
+        if 'route53_excluded_zones' in config:
             self.route53_excluded_zones.extend(
-                config.get('ec2', 'route53_excluded_zones', '').split(','))
+                config.get('route53_excluded_zones', '').split(','))
 
         # Include RDS instances?
         self.rds_enabled = True
-        if config.has_option('ec2', 'rds'):
-            self.rds_enabled = config.getboolean('ec2', 'rds')
+        if 'rds' in config:
+            self.rds_enabled = config.get('rds')
 
         # Include ElastiCache instances?
         self.elasticache_enabled = True
-        if config.has_option('ec2', 'elasticache'):
-            self.elasticache_enabled = config.getboolean('ec2', 'elasticache')
+        if 'elasticache' in config:
+            self.elasticache_enabled = config.get('elasticache')
 
         # Return all EC2 instances?
-        if config.has_option('ec2', 'all_instances'):
-            self.all_instances = config.getboolean('ec2', 'all_instances')
+        if 'all_instances' in config:
+            self.all_instances = config.get('all_instances')
         else:
             self.all_instances = False
 
         # Return all RDS instances? (if RDS is enabled)
-        if config.has_option('ec2', 'all_rds_instances') and self.rds_enabled:
-            self.all_rds_instances = config.getboolean('ec2', 'all_rds_instances')
+        if 'all_rds_instances' in config and self.rds_enabled:
+            self.all_rds_instances = config.get('all_rds_instances')
         else:
             self.all_rds_instances = False
 
         # Return all ElastiCache replication groups? (if ElastiCache is enabled)
-        if config.has_option('ec2', 'all_elasticache_replication_groups') and self.elasticache_enabled:
-            self.all_elasticache_replication_groups = config.getboolean('ec2', 'all_elasticache_replication_groups')
+        if 'all_elasticache_replication_groups' in config and self.elasticache_enabled:
+            self.all_elasticache_replication_groups = config.get('all_elasticache_replication_groups')
         else:
             self.all_elasticache_replication_groups = False
 
         # Return all ElastiCache clusters? (if ElastiCache is enabled)
-        if config.has_option('ec2', 'all_elasticache_clusters') and self.elasticache_enabled:
-            self.all_elasticache_clusters = config.getboolean('ec2', 'all_elasticache_clusters')
+        if 'all_elasticache_clusters' in config and self.elasticache_enabled:
+            self.all_elasticache_clusters = config.getboolean('all_elasticache_clusters')
         else:
             self.all_elasticache_clusters = False
 
         # Return all ElastiCache nodes? (if ElastiCache is enabled)
-        if config.has_option('ec2', 'all_elasticache_nodes') and self.elasticache_enabled:
-            self.all_elasticache_nodes = config.getboolean('ec2', 'all_elasticache_nodes')
+        if 'all_elasticache_nodes' in config and self.elasticache_enabled:
+            self.all_elasticache_nodes = config.get('all_elasticache_nodes')
         else:
             self.all_elasticache_nodes = False
 
         # Cache related
-        cache_dir = os.path.expanduser(config.get('ec2', 'cache_path'))
+        cache_dir = os.path.expanduser(config.get('cache_path'))
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
 
         self.cache_path_cache = cache_dir + "/ansible-ec2.cache"
         self.cache_path_index = cache_dir + "/ansible-ec2.index"
-        self.cache_max_age = config.getint('ec2', 'cache_max_age')
+        self.cache_max_age = config.get('cache_max_age')
 
         # Configure nested groups instead of flat namespace.
-        if config.has_option('ec2', 'nested_groups'):
-            self.nested_groups = config.getboolean('ec2', 'nested_groups')
+        if 'nested_groups' in config:
+            self.nested_groups = config.get('nested_groups')
         else:
             self.nested_groups = False
 
@@ -310,14 +383,14 @@ class Ec2FactInventory(object):
             'group_by_elasticache_replication_group',
         ]
         for option in group_by_options:
-            if config.has_option('ec2', option):
-                setattr(self, option, config.getboolean('ec2', option))
+            if option in config:
+                setattr(self, option, config.get(option))
             else:
                 setattr(self, option, True)
 
         # Do we need to just include hosts that match a pattern?
         try:
-            pattern_include = config.get('ec2', 'pattern_include')
+            pattern_include = config.get('pattern_include')
             if pattern_include and len(pattern_include) > 0:
                 self.pattern_include = re.compile(pattern_include)
             else:
@@ -327,7 +400,7 @@ class Ec2FactInventory(object):
 
         # Do we need to exclude hosts that match a pattern?
         try:
-            pattern_exclude = config.get('ec2', 'pattern_exclude');
+            pattern_exclude = config.get('pattern_exclude');
             if pattern_exclude and len(pattern_exclude) > 0:
                 self.pattern_exclude = re.compile(pattern_exclude)
             else:
@@ -337,8 +410,8 @@ class Ec2FactInventory(object):
 
         # Instance filters (see boto and EC2 API docs). Ignore invalid filters.
         self.ec2_instance_filters = defaultdict(list)
-        if config.has_option('ec2', 'instance_filters'):
-            for instance_filter in config.get('ec2', 'instance_filters', '').split(','):
+        if 'instance_filters' in config:
+            for instance_filter in config.get('instance_filters', '').split(','):
                 instance_filter = instance_filter.strip()
                 if not instance_filter or '=' not in instance_filter:
                     continue
