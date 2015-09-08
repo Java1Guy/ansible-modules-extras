@@ -139,6 +139,11 @@ EXAMPLES = '''
 
 RETURN = '''
 ---
+id:
+  description: UUID of the of the rule.
+  returned: success
+  type: string
+  sample: a6f7a5fc-43f8-11e5-a151-feff819cdc9f
 security_group:
   description: security group of the rule.
   returned: success
@@ -189,7 +194,16 @@ from ansible.module_utils.cloudstack import *
 class AnsibleCloudStackSecurityGroupRule(AnsibleCloudStack):
 
     def __init__(self, module):
-        AnsibleCloudStack.__init__(self, module)
+        super(AnsibleCloudStackSecurityGroupRule, self).__init__(module)
+        self.returns = {
+            'icmptype':             'icmp_type',
+            'icmpcode':             'icmp_code',
+            'endport':              'end_port',
+            'startport':            'start_port',
+            'protocol':             'protocol',
+            'cidr':                 'cidr',
+            'securitygroupname':    'user_security_group',
+        }
 
 
     def _tcp_udp_match(self, rule, protocol, start_port, end_port):
@@ -349,27 +363,11 @@ class AnsibleCloudStackSecurityGroupRule(AnsibleCloudStack):
 
 
     def get_result(self, security_group_rule):
-
+        super(AnsibleCloudStackSecurityGroupRule, self).get_result(security_group_rule)
         self.result['type'] = self.module.params.get('type')
         self.result['security_group'] = self.module.params.get('security_group')
-        
-        if security_group_rule:
-            rule = security_group_rule
-            if 'securitygroupname' in rule:
-                self.result['user_security_group'] = rule['securitygroupname']
-            if 'cidr' in rule:
-                self.result['cidr'] = rule['cidr']
-            if 'protocol' in rule:
-                self.result['protocol'] = rule['protocol']
-            if 'startport' in rule:
-                self.result['start_port'] = rule['startport']
-            if 'endport' in rule:
-                self.result['end_port'] = rule['endport']
-            if 'icmpcode' in rule:
-                self.result['icmp_code'] = rule['icmpcode']
-            if 'icmptype' in rule:
-                self.result['icmp_type'] = rule['icmptype']
         return self.result
+
 
 
 def main():
@@ -392,6 +390,7 @@ def main():
             api_url = dict(default=None),
             api_http_method = dict(choices=['get', 'post'], default='get'),
             api_timeout = dict(type='int', default=10),
+            api_region = dict(default='cloudstack'),
         ),
         required_together = (
             ['icmp_type', 'icmp_code'],

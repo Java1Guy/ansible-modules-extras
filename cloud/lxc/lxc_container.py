@@ -39,6 +39,7 @@ options:
           - loop
           - btrfs
           - overlayfs
+          - zfs
         description:
           - Backend storage type for the container.
         required: false
@@ -447,13 +448,16 @@ LXC_BACKING_STORE = {
         'zfs_root'
     ],
     'btrfs': [
-        'lv_name', 'vg_name', 'thinpool', 'zfs_root'
+        'lv_name', 'vg_name', 'thinpool', 'zfs_root', 'fs_type', 'fs_size'
     ],
     'loop': [
         'lv_name', 'vg_name', 'thinpool', 'zfs_root'
     ],
     'overlayfs': [
         'lv_name', 'vg_name', 'fs_type', 'fs_size', 'thinpool', 'zfs_root'
+    ],
+    'zfs': [
+        'lv_name', 'vg_name', 'fs_type', 'fs_size', 'thinpool'
     ]
 }
 

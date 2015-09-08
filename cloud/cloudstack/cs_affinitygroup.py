@@ -81,6 +81,11 @@ EXAMPLES = '''
 
 RETURN = '''
 ---
+id:
+  description: UUID of the affinity group.
+  returned: success
+  type: string
+  sample: 87b1e0ce-4e01-11e4-bb66-0050569e64b8
 name:
   description: Name of affinity group.
   returned: success
@@ -111,7 +116,10 @@ from ansible.module_utils.cloudstack import *
 class AnsibleCloudStackAffinityGroup(AnsibleCloudStack):
 
     def __init__(self, module):
-        AnsibleCloudStack.__init__(self, module)
+        super(AnsibleCloudStackAffinityGroup, self).__init__(module)
+        self.returns = {
+            'type': 'affinity_type',
+        }
         self.affinity_group = None
 
 
@@ -192,21 +200,6 @@ class AnsibleCloudStackAffinityGroup(AnsibleCloudStack):
         return affinity_group
 
 
-    def get_result(self, affinity_group):
-        if affinity_group:
-            if 'name' in affinity_group:
-                self.result['name'] = affinity_group['name']
-            if 'description' in affinity_group:
-                self.result['description'] = affinity_group['description']
-            if 'type' in affinity_group:
-                self.result['affinity_type'] = affinity_group['type']
-            if 'domain' in affinity_group:
-                self.result['domain'] = affinity_group['domain']
-            if 'account' in affinity_group:
-                self.result['account'] = affinity_group['account']
-        return self.result
-
-
 def main():
     module = AnsibleModule(
         argument_spec = dict(
@@ -222,6 +215,7 @@ def main():
             api_url = dict(default=None),
             api_http_method = dict(choices=['get', 'post'], default='get'),
             api_timeout = dict(type='int', default=10),
+            api_region = dict(default='cloudstack'),
         ),
         required_together = (
             ['api_key', 'api_secret', 'api_url'],

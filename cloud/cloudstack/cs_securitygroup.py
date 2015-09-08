@@ -66,6 +66,11 @@ EXAMPLES = '''
 
 RETURN = '''
 ---
+id:
+  description: UUID of the security group.
+  returned: success
+  type: string
+  sample: a6f7a5fc-43f8-11e5-a151-feff819cdc9f
 name:
   description: Name of security group.
   returned: success
@@ -91,7 +96,7 @@ from ansible.module_utils.cloudstack import *
 class AnsibleCloudStackSecurityGroup(AnsibleCloudStack):
 
     def __init__(self, module):
-        AnsibleCloudStack.__init__(self, module)
+        super(AnsibleCloudStackSecurityGroup, self).__init__(module)
         self.security_group = None
 
 
@@ -145,14 +150,6 @@ class AnsibleCloudStackSecurityGroup(AnsibleCloudStack):
         return security_group
 
 
-    def get_result(self, security_group):
-        if security_group:
-            if 'name' in security_group:
-                self.result['name'] = security_group['name']
-            if 'description' in security_group:
-                self.result['description'] = security_group['description']
-        return self.result
-
 
 def main():
     module = AnsibleModule(
@@ -166,6 +163,7 @@ def main():
             api_url = dict(default=None),
             api_http_method = dict(choices=['get', 'post'], default='get'),
             api_timeout = dict(type='int', default=10),
+            api_region = dict(default='cloudstack'),
         ),
         required_together = (
             ['api_key', 'api_secret', 'api_url'],

@@ -93,6 +93,11 @@ EXAMPLES = '''
 
 RETURN = '''
 ---
+id:
+  description: UUID of the ip_address.
+  returned: success
+  type: string
+  sample: a6f7a5fc-43f8-11e5-a151-feff819cdc9f
 ip_address:
   description: Public IP address.
   returned: success
@@ -149,7 +154,13 @@ from ansible.module_utils.cloudstack import *
 class AnsibleCloudStackStaticNat(AnsibleCloudStack):
 
     def __init__(self, module):
-        AnsibleCloudStack.__init__(self, module)
+        super(AnsibleCloudStackStaticNat, self).__init__(module)
+        self.returns = {
+            'virtualmachinedisplayname':    'vm_display_name',
+            'virtualmachinename':           'vm_name',
+            'ipaddress':                    'ip_address',
+            'vmipaddress':                  'vm_guest_ip',
+        }
         self.vm_default_nic = None
 
 
@@ -246,26 +257,6 @@ class AnsibleCloudStackStaticNat(AnsibleCloudStack):
         return ip_address
 
 
-    def get_result(self, ip_address):
-        if ip_address:
-            if 'zonename' in ip_address:
-                self.result['zone'] = ip_address['zonename']
-            if 'domain' in ip_address:
-                self.result['domain'] = ip_address['domain']
-            if 'account' in ip_address:
-                self.result['account'] = ip_address['account']
-            if 'project' in ip_address:
-                self.result['project'] = ip_address['project']
-            if 'virtualmachinedisplayname' in ip_address:
-                self.result['vm_display_name'] = ip_address['virtualmachinedisplayname']
-            if 'virtualmachinename' in ip_address:
-                self.result['vm'] = ip_address['virtualmachinename']
-            if 'vmipaddress' in ip_address:
-                self.result['vm_guest_ip'] = ip_address['vmipaddress']
-            if 'ipaddress' in ip_address:
-                self.result['ip_address'] = ip_address['ipaddress']
-        return self.result
-
 
 def main():
     module = AnsibleModule(
@@ -284,6 +275,7 @@ def main():
             api_url = dict(default=None),
             api_http_method = dict(choices=['get', 'post'], default='get'),
             api_timeout = dict(type='int', default=10),
+            api_region = dict(default='cloudstack'),
         ),
         required_together = (
             ['api_key', 'api_secret', 'api_url'],
