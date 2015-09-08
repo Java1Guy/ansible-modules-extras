@@ -16,15 +16,15 @@
 DOCUMENTATION = '''
 ---
 module: ec2_vpc_facts
-short_description: Gather facts about ec2 ENI interfaces in AWS
+short_description: Gather facts about VPCs in AWS
 description:
-    - Gather facts about ec2 ENI interfaces in AWS
+    - Gather facts about VPCs in AWS
 version_added: "2.0"
-author: "Rob White (@wimnat)"
+author: "Mark Chance (@java1guy)"
 options:
-  eni_id:
+  vpc_id:
     description:
-      - The ID of the ENI. Pass this option to gather facts about a particular ENI, otherwise, all ENIs are returned.
+      - The ID of the VPC
     required: false
     default: null
 extends_documentation_fragment: aws
@@ -33,12 +33,17 @@ extends_documentation_fragment: aws
 EXAMPLES = '''
 # Note: These examples do not set authentication details, see the AWS Guide for details.
 
-# Gather facts about all ENIs
-- ec2_eni_facts:
+# Gather facts about all VPCs
+- ec2_vpc_facts:
 
-# Gather facts about a particular ENI
-- ec2_eni_facts:
-    eni_id: eni-xxxxxxx
+# Gather facts about a particular VPC
+- ec2_vpc_facts:
+    vpc_id: vpc-xxxxxxx
+
+# Gather facts about a particular subnet
+- ec2_vpc_facts:
+    options: subnets
+    vpc_id: vpc-xxxxxxx
 
 '''
 try:
