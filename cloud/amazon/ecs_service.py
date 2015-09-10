@@ -25,7 +25,7 @@ notes:
     for the ecs service, ecs.amazonaws.com)
 dependecies:
     - An IAM role must have been created
-version_added: "0.9"
+version_added: "2.0"
 options:
 '''
 
