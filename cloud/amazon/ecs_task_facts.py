@@ -20,7 +20,7 @@ module: ecs_task_facts
 short_description: return facts about tasks in ecs
 description:
     - Describes or lists tasks.
-version_added: 1.9
+version_added: 2.0
 options:
     details:
         description:
