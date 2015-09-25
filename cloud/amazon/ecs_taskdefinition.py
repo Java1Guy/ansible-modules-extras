@@ -21,31 +21,35 @@ short_description: register a task definition in ecs
 description:
     - Creates or terminates task definitions
 version_added: "2.0"
+author: Mark Chance(@Java1Guy)
 requirements: [ json, boto, botocore, boto3 ]
 options:
     state:
         description:
             - State whether the task definition should exist or be deleted
         required: true
-        choices=['present', 'absent']
-
+        choices: ['present', 'absent']
     arn:
         description:
             - The arn of the task description to delete
         required: false
-
     family:
-        =dict(required=False, type='str' ),
-
+        description:
+            - A Name that would be given to the task definition
+        required: false
     revision:
+        description:
+            - A revision number for the task definition
         required: False
         type: int
-
     containers:
+        description:
+            - A list of containers definitions 
         required: False
         type: list of dicts with container definitions
-
     volumes:
+        description:
+            - A list of names of volumes to be attached
         required: False
         type: list of name
 '''
