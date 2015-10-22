@@ -40,24 +40,35 @@ options:
             - Set this to a list of task identifiers.  If 'details' is false, this is required.
         required: false
     family:
+        description:
+            - the family of tasks to describe
         required: False
         type: str
-
     container_instance:
+        description:
+            - what container's tasks to describe
         required: False
         type: 'str'
     max_results:
+        description:
+            - how many results to return
         required: False
         type: 'int'
     started_by:
+        description:
+            - who started the task
         required: False
         type: 'str'
     service_name:
+        description:
+            - the service of the tasks
         required: False
         type: 'str'
     desired_status:
+        description:
+            - the status of the tasks to describe
         required: False
-        choices=['RUNNING', 'PENDING', 'STOPPED']
+        choices: ['RUNNING', 'PENDING', 'STOPPED']
 
 '''
 
